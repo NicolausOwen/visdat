@@ -102,6 +102,11 @@ export default function Dashboard() {
     const cA = compareCountryA ? state.dataByCountry[compareCountryA] : undefined;
     const cB = compareCountryB ? state.dataByCountry[compareCountryB] : undefined;
 
+    const countryOptions = [
+        ...(state.countries.find(c => c.entity === 'World') ? [state.countries.find(c => c.entity === 'World')!] : []),
+        ...state.countries.filter(c => c.entity !== 'World')
+    ];
+
     return (
         <div className="flex-1 flex flex-col p-2 md:p-4 gap-4 bg-gray-50 text-gray-800 font-sans">
             <header className="bg-white shadow px-4 py-3 md:px-6 md:py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 rounded-xl shrink-0">
@@ -165,9 +170,9 @@ export default function Dashboard() {
                             <select 
                                 value={selectedCountryCode} 
                                 onChange={(e) => handleCountrySelect(e.target.value)}
-                                className="w-full border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3 border bg-white cursor-pointer"
+                                className="w-full border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3 border bg-white cursor-pointer text-ellipsis overflow-hidden"
                             >
-                                {state.countries.map(c => <option key={c.code} value={c.code}>{c.entity}</option>)}
+                                {countryOptions.map(c => <option key={c.code} value={c.code}>{c.entity}</option>)}
                             </select>
                         </div>
 
@@ -223,14 +228,16 @@ export default function Dashboard() {
                         <div className="flex flex-col gap-3 md:gap-4 bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-200">
                             <div className="flex flex-col gap-2 border-b border-gray-200 pb-3">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-xs md:text-sm font-bold text-gray-600 min-w-[60px] md:min-w-[70px]">Country 1:</label>
-                                    <select 
-                                        value={compareCountryA || ''} 
-                                        onChange={e => setCompareCountryA(e.target.value)}
-                                        className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 border bg-white cursor-pointer flex-1 text-sm"
-                                    >
-                                        {state.countries.map(c => <option key={c.code} value={c.code}>{c.entity}</option>)}
-                                    </select>
+                                    <label className="text-xs md:text-sm font-bold text-gray-600 min-w-[60px] md:min-w-[70px] shrink-0">Country 1:</label>
+                                    <div className="flex-1 min-w-0">
+                                        <select 
+                                            value={compareCountryA || ''} 
+                                            onChange={e => setCompareCountryA(e.target.value)}
+                                            className="w-full border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 border bg-white cursor-pointer text-sm text-ellipsis overflow-hidden"
+                                        >
+                                            {countryOptions.map(c => <option key={c.code} value={c.code}>{c.entity}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <label className="text-xs md:text-sm font-bold text-gray-600 min-w-[60px] md:min-w-[70px]">Year 1:</label>
@@ -273,14 +280,16 @@ export default function Dashboard() {
                         <div className="flex flex-col gap-3 md:gap-4 bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-200">
                             <div className="flex flex-col gap-2 border-b border-gray-200 pb-3">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-xs md:text-sm font-bold text-gray-600 min-w-[60px] md:min-w-[70px]">Country 2:</label>
-                                    <select 
-                                        value={compareCountryB || ''} 
-                                        onChange={e => setCompareCountryB(e.target.value)}
-                                        className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 border bg-white cursor-pointer flex-1 text-sm"
-                                    >
-                                        {state.countries.map(c => <option key={c.code} value={c.code}>{c.entity}</option>)}
-                                    </select>
+                                    <label className="text-xs md:text-sm font-bold text-gray-600 min-w-[60px] md:min-w-[70px] shrink-0">Country 2:</label>
+                                    <div className="flex-1 min-w-0">
+                                        <select 
+                                            value={compareCountryB || ''} 
+                                            onChange={e => setCompareCountryB(e.target.value)}
+                                            className="w-full border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 border bg-white cursor-pointer text-sm text-ellipsis overflow-hidden"
+                                        >
+                                            {countryOptions.map(c => <option key={c.code} value={c.code}>{c.entity}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <label className="text-xs md:text-sm font-bold text-gray-600 min-w-[60px] md:min-w-[70px]">Year 2:</label>
