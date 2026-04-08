@@ -106,7 +106,7 @@ export default function Dashboard() {
         <div className="flex-1 flex flex-col p-4 gap-4 bg-gray-50 text-gray-800 font-sans">
             <header className="bg-white shadow px-6 py-4 flex justify-between items-center rounded-xl shrink-0">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    🌍 Global Temperature Dashboard
+                    Average temperature Dashboard
                 </h1>
                 <div className="flex items-center space-x-4">
                     <label className="font-semibold text-gray-600 hidden md:block">Map Year:</label>
