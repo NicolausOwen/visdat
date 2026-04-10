@@ -2,7 +2,21 @@
 import { useState, useEffect } from 'react';
 import { useClimateData, fetchFlag } from '@/hooks/useClimateData';
 import Map from './Map';
-import { YearlyChart, MonthlyChart, CompareChart } from './Charts';
+import { YearlyChart, MonthlyChart, CompareChart, ChartVariant } from './Charts';
+
+const InfoTooltip = ({ text }: { text: string }) => (
+    <div className="relative group inline-block ml-1 align-middle">
+        <span className="text-gray-400 hover:text-blue-500 cursor-help">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </span>
+        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-50 text-center pointer-events-none">
+            {text}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+        </div>
+    </div>
+);
 
 export default function Dashboard() {
     const { state, loading, error } = useClimateData();
@@ -17,6 +31,15 @@ export default function Dashboard() {
 
     const [flagA, setFlagA] = useState<string | null>(null);
     const [flagB, setFlagB] = useState<string | null>(null);
+
+    // New states for YearlyChart filters
+    const [yearlyChartType, setYearlyChartType] = useState<ChartVariant>('line');
+    const [yearlyStartYear, setYearlyStartYear] = useState<number | undefined>(undefined);
+    const [yearlyEndYear, setYearlyEndYear] = useState<number | undefined>(undefined);
+
+    // New states for Monthly and Compare chart variants
+    const [monthlyChartType, setMonthlyChartType] = useState<ChartVariant>('bar');
+    const [compareChartType, setCompareChartType] = useState<ChartVariant>('line');
 
     useEffect(() => {
         if (state && !selectedYear && !selectedCountryCode) {
@@ -129,7 +152,7 @@ export default function Dashboard() {
                 <div className="flex-1 flex flex-col gap-4">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 shrink-0">
                         <div className="bg-white p-3 md:p-4 rounded-xl shadow border border-gray-100 flex flex-col justify-center col-span-2 md:col-span-1">
-                            <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wide">Global Avg Temp</h3>
+                            <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wide">Global Avg Temp <InfoTooltip text="Suhu rata-rata global pada tahun yang dipilih." /></h3>
                             <div className="flex items-baseline gap-2">
                                 <p className="text-2xl md:text-3xl font-bold text-gray-800 mt-1">
                                     {globalAvg !== null && globalAvg !== undefined ? globalAvg.toFixed(2) : 'N/A'}
@@ -138,19 +161,19 @@ export default function Dashboard() {
                             </div>
                         </div>
                         <div className="bg-white p-3 md:p-4 rounded-xl shadow border border-gray-100 flex flex-col justify-center">
-                            <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wide">Hottest Country</h3>
+                            <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wide">Hottest Country <InfoTooltip text="Negara dengan suhu terpanas pada tahun yang dipilih." /></h3>
                             <p className="text-lg md:text-xl font-bold text-red-600 mt-1 truncate">{hottest.entity}</p>
                             <p className="text-xs md:text-sm text-gray-500 font-semibold">{hottest.temp ? hottest.temp.toFixed(2) + ' °C' : '-'}</p>
                         </div>
                         <div className="bg-white p-3 md:p-4 rounded-xl shadow border border-gray-100 flex flex-col justify-center">
-                            <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wide">Coldest Country</h3>
+                            <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wide">Coldest Country <InfoTooltip text="Negara dengan suhu terdingin pada tahun yang dipilih." /></h3>
                             <p className="text-lg md:text-xl font-bold text-blue-600 mt-1 truncate">{coldest.entity}</p>
                             <p className="text-xs md:text-sm text-gray-500 font-semibold">{coldest.temp ? coldest.temp.toFixed(2) + ' °C' : '-'}</p>
                         </div>
                     </div>
 
                     <div className="bg-white p-2 md:p-4 rounded-xl shadow border border-gray-100 flex-1 flex flex-col min-h-[300px] md:min-h-[400px]">
-                        <h2 className="text-base md:text-lg font-bold text-gray-700 mb-2 px-2 md:px-0">Global Average Temperature Map ({selectedYear})</h2>
+                        <h2 className="text-base md:text-lg font-bold text-gray-700 mb-2 px-2 md:px-0">Global Average Temperature Map ({selectedYear}) <InfoTooltip text="Peta interaktif yang menunjukkan distribusi suhu rata-rata di berbagai negara." /></h2>
                         <Map 
                             state={state} 
                             selectedYear={selectedYear} 
@@ -163,7 +186,7 @@ export default function Dashboard() {
 
                 <div className="w-full lg:w-[450px] flex flex-col gap-4 shrink-0">
                     <div className="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-100 shrink-0">
-                        <h2 className="text-lg md:text-xl font-bold text-gray-800 border-b pb-2 md:pb-3 mb-3 md:mb-4">Country Details</h2>
+                        <h2 className="text-lg md:text-xl font-bold text-gray-800 border-b pb-2 md:pb-3 mb-3 md:mb-4">Country Details <InfoTooltip text="Informasi detail mengenai suhu pada negara atau region yang dipilih." /></h2>
 
                         <div className="mb-4 md:mb-5">
                             <label className="block text-xs md:text-sm font-semibold text-gray-600 mb-1">Selected Country/Region:</label>
@@ -203,16 +226,68 @@ export default function Dashboard() {
                     </div>
 
                     <div className="bg-white p-3 md:p-4 rounded-xl shadow border border-gray-100 flex flex-col flex-1 min-h-[200px]">
-                        <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2">Historical Trend (Yearly Average)</h3>
+                        <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2">Historical Trend (Yearly Average) <InfoTooltip text="Grafik tren suhu rata-rata tahunan beserta rata-rata bergerak (moving average) 5 tahun." /></h3>
+                        <div className="flex flex-wrap gap-2 mb-3 items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] md:text-xs font-semibold text-gray-600">From:</label>
+                                <select 
+                                    value={yearlyStartYear || ''} 
+                                    onChange={(e) => setYearlyStartYear(e.target.value ? parseInt(e.target.value) : undefined)}
+                                    className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1 px-2 border bg-white cursor-pointer text-xs"
+                                >
+                                    <option value="">All</option>
+                                    {state.years.map(y => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                                <label className="text-[10px] md:text-xs font-semibold text-gray-600 ml-2">To:</label>
+                                <select 
+                                    value={yearlyEndYear || ''} 
+                                    onChange={(e) => setYearlyEndYear(e.target.value ? parseInt(e.target.value) : undefined)}
+                                    className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1 px-2 border bg-white cursor-pointer text-xs"
+                                >
+                                    <option value="">All</option>
+                                    {state.years.map(y => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] md:text-xs font-semibold text-gray-600">Type:</label>
+                                <select 
+                                    value={yearlyChartType} 
+                                    onChange={(e) => setYearlyChartType(e.target.value as ChartVariant)}
+                                    className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1 px-2 border bg-white cursor-pointer text-xs"
+                                >
+                                    <option value="line">Line</option>
+                                    <option value="bar">Bar</option>
+                                    <option value="area">Area</option>
+                                    <option value="scatter">Scatter</option>
+                                    <option value="stepped">Stepped</option>
+                                </select>
+                            </div>
+                        </div>
                         <div className="flex-1 relative w-full h-full min-h-[150px]">
-                            <YearlyChart country={currentCountry} />
+                            <YearlyChart country={currentCountry} startYear={yearlyStartYear} endYear={yearlyEndYear} chartType={yearlyChartType} />
                         </div>
                     </div>
 
                     <div className="bg-white p-3 md:p-4 rounded-xl shadow border border-gray-100 flex flex-col flex-1 min-h-[200px]">
-                        <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2">Monthly Distribution ({selectedYear})</h3>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-xs md:text-sm font-bold text-gray-700">Monthly Distribution ({selectedYear}) <InfoTooltip text="Distribusi suhu rata-rata bulanan dalam tahun yang dipilih." /></h3>
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] md:text-xs font-semibold text-gray-600">Type:</label>
+                                <select 
+                                    value={monthlyChartType} 
+                                    onChange={(e) => setMonthlyChartType(e.target.value as ChartVariant)}
+                                    className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1 px-2 border bg-white cursor-pointer text-xs"
+                                >
+                                    <option value="line">Line</option>
+                                    <option value="bar">Bar</option>
+                                    <option value="area">Area</option>
+                                    <option value="scatter">Scatter</option>
+                                    <option value="stepped">Stepped</option>
+                                </select>
+                            </div>
+                        </div>
                         <div className="flex-1 relative w-full h-full min-h-[150px]">
-                            <MonthlyChart country={currentCountry} selectedYear={selectedYear} />
+                            <MonthlyChart country={currentCountry} selectedYear={selectedYear} chartType={monthlyChartType} />
                         </div>
                     </div>
                 </div>
@@ -220,8 +295,22 @@ export default function Dashboard() {
 
             {compareCountryA && !compareCountryA.startsWith('ENTITY_') && compareCountryB && !compareCountryB.startsWith('ENTITY_') && (
                 <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-gray-100 mt-4 flex flex-col gap-4 md:gap-6">
-                    <div className="flex justify-between items-center border-b pb-3 md:pb-4">
-                        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Compare Countries</h2>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 md:pb-4 gap-2">
+                        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Compare Countries <InfoTooltip text="Membandingkan tren suhu antara dua negara berdasarkan rentang waktu." /></h2>
+                        <div className="flex items-center gap-2">
+                            <label className="text-[10px] md:text-xs font-semibold text-gray-600">Chart Type:</label>
+                            <select 
+                                value={compareChartType} 
+                                onChange={(e) => setCompareChartType(e.target.value as ChartVariant)}
+                                className="border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 border bg-white cursor-pointer text-sm"
+                            >
+                                <option value="line">Line</option>
+                                <option value="bar">Bar</option>
+                                <option value="area">Area</option>
+                                <option value="scatter">Scatter</option>
+                                <option value="stepped">Stepped</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
@@ -331,7 +420,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="h-[250px] md:h-[300px] w-full mt-2 md:mt-4">
-                        <CompareChart countryA={cA} countryB={cB} />
+                        <CompareChart countryA={cA} countryB={cB} chartType={compareChartType} />
                     </div>
                 </div>
             )}

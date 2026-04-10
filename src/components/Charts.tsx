@@ -26,10 +26,38 @@ ChartJS.register(
   Filler
 );
 
-export function YearlyChart({ country }: { country: CountryData | undefined }) {
+export type ChartVariant = 'line' | 'bar' | 'area' | 'scatter' | 'stepped';
+
+function getDatasetConfig(variant: ChartVariant, color: string, bgColor: string, label: string, data: any[]) {
+    const isBar = variant === 'bar';
+    return {
+        type: (isBar ? 'bar' : 'line') as any,
+        label,
+        data,
+        borderColor: color,
+        backgroundColor: variant === 'area' ? color.replace('1)', '0.2)').replace('0.8)', '0.2)') : (isBar ? color : bgColor),
+        borderWidth: isBar ? 1 : 2,
+        fill: variant === 'area',
+        stepped: variant === 'stepped',
+        showLine: variant !== 'scatter',
+        pointRadius: variant === 'scatter' ? 3 : 0,
+        pointHoverRadius: 5,
+        tension: variant === 'stepped' ? 0 : 0.1
+    };
+}
+
+export function YearlyChart({ country, startYear, endYear, chartType = 'line' }: { country: CountryData | undefined, startYear?: number, endYear?: number, chartType?: ChartVariant }) {
     if (!country) return null;
 
-    const years = Array.from(country.years).sort((a,b) => a - b);
+    let years = Array.from(country.years).sort((a,b) => a - b);
+    
+    if (startYear !== undefined) {
+        years = years.filter(y => y >= startYear);
+    }
+    if (endYear !== undefined) {
+        years = years.filter(y => y <= endYear);
+    }
+
     const yearlyData = years.map(y => country.yearly[y]);
 
     const windowSize = 5;
@@ -49,18 +77,9 @@ export function YearlyChart({ country }: { country: CountryData | undefined }) {
     const data = {
         labels: years,
         datasets: [
+            getDatasetConfig(chartType, 'rgba(59, 130, 246, 0.8)', 'rgba(59, 130, 246, 0.1)', 'Avg Temp (°C)', yearlyData),
             {
-                label: 'Avg Temp (°C)',
-                data: yearlyData,
-                borderColor: 'rgba(59, 130, 246, 0.6)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-                fill: true,
-                tension: 0.1
-            },
-            {
+                type: 'line' as any,
                 label: '5-Year MA',
                 data: movingAvg,
                 borderColor: 'rgba(239, 68, 68, 1)',
@@ -86,10 +105,13 @@ export function YearlyChart({ country }: { country: CountryData | undefined }) {
         }
     };
 
-    return <Line data={data} options={options} />;
+    if (chartType === 'bar') {
+        return <Bar data={data as any} options={options} />;
+    }
+    return <Line data={data as any} options={options} />;
 }
 
-export function MonthlyChart({ country, selectedYear }: { country: CountryData | undefined, selectedYear: number }) {
+export function MonthlyChart({ country, selectedYear, chartType = 'bar' }: { country: CountryData | undefined, selectedYear: number, chartType?: ChartVariant }) {
     if (!country) return null;
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -103,14 +125,16 @@ export function MonthlyChart({ country, selectedYear }: { country: CountryData |
         return 'rgba(239, 68, 68, 0.8)';
     });
 
+    const dataset = getDatasetConfig(chartType, 'rgba(59, 130, 246, 0.8)', 'rgba(59, 130, 246, 0.1)', 'Temp (°C)', monthlyData);
+    
+    if (chartType === 'bar') {
+        (dataset as any).backgroundColor = bgColors;
+        (dataset as any).borderRadius = 4;
+    }
+
     const data = {
         labels: months,
-        datasets: [{
-            label: 'Temp (°C)',
-            data: monthlyData,
-            backgroundColor: bgColors,
-            borderRadius: 4
-        }]
+        datasets: [dataset]
     };
 
     const options: any = {
@@ -123,15 +147,19 @@ export function MonthlyChart({ country, selectedYear }: { country: CountryData |
         }
     };
 
-    return <Bar data={data} options={options} />;
+    if (chartType === 'bar') {
+        return <Bar data={data as any} options={options} />;
+    }
+    return <Line data={data as any} options={options} />;
 }
 
 interface CompareChartProps {
     countryA: CountryData | undefined;
     countryB: CountryData | undefined;
+    chartType?: ChartVariant;
 }
 
-export function CompareChart({ countryA, countryB }: CompareChartProps) {
+export function CompareChart({ countryA, countryB, chartType = 'line' }: CompareChartProps) {
     const yearsSet = new Set<number>();
     if (countryA) countryA.years.forEach(y => yearsSet.add(y));
     if (countryB) countryB.years.forEach(y => yearsSet.add(y));
@@ -150,28 +178,8 @@ export function CompareChart({ countryA, countryB }: CompareChartProps) {
     const data = {
         labels: allYears,
         datasets: [
-            {
-                label: labelA,
-                data: dataA,
-                borderColor: 'rgba(59, 130, 246, 1)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-                fill: false,
-                tension: 0.1
-            },
-            {
-                label: labelB,
-                data: dataB,
-                borderColor: 'rgba(239, 68, 68, 1)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-                fill: false,
-                tension: 0.1
-            }
+            getDatasetConfig(chartType, 'rgba(59, 130, 246, 1)', 'rgba(59, 130, 246, 0.1)', labelA, dataA),
+            getDatasetConfig(chartType, 'rgba(239, 68, 68, 1)', 'rgba(239, 68, 68, 0.1)', labelB, dataB)
         ]
     };
 
@@ -189,5 +197,8 @@ export function CompareChart({ countryA, countryB }: CompareChartProps) {
         }
     };
 
-    return <Line data={data} options={options} />;
+    if (chartType === 'bar') {
+        return <Bar data={data as any} options={options} />;
+    }
+    return <Line data={data as any} options={options} />;
 }
